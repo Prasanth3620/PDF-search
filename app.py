@@ -4,32 +4,32 @@ import streamlit as st
 
 from rag_backend import create_vector_store, get_answer
 
-from rag_backend import create_vector_store, get_answer
-
-
 st.set_page_config(
     page_title="PDF Question Answering",
     page_icon="📄"
 )
 
 st.title("📄 PDF Question Answering")
-
 st.write("Upload a PDF and ask questions about it.")
 
-# API_KEY = st.secrets["GOOGLE_API_KEY"]
-
+# Read API key from environment variable (Render)
 API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# st.write(st.secrets)
-# st.stop()
+if API_KEY is None:
+    st.error("GOOGLE_API_KEY environment variable is not set.")
+    st.stop()
+
+
+@st.cache_resource(show_spinner=False)
+def load_vector_store(pdf_path, api_key):
+    return create_vector_store(pdf_path, api_key)
+
 
 uploaded_pdf = st.file_uploader(
     "Upload PDF",
     type=["pdf"]
 )
 
-
-# Create vector database only once
 if uploaded_pdf is not None:
 
     if (
@@ -43,12 +43,11 @@ if uploaded_pdf is not None:
         ) as tmp:
 
             tmp.write(uploaded_pdf.read())
-
             pdf_path = tmp.name
 
         with st.spinner("Reading PDF and creating embeddings..."):
 
-            vector_store = create_vector_store(
+            vector_store = load_vector_store(
                 pdf_path,
                 API_KEY
             )
@@ -58,12 +57,9 @@ if uploaded_pdf is not None:
 
         st.success("PDF processed successfully!")
 
-
-
 question = st.text_input(
     "Ask a question"
 )
-
 
 if st.button("Get Answer"):
 
@@ -86,5 +82,4 @@ if st.button("Get Answer"):
             )
 
         st.markdown("### Answer")
-
         st.write(answer)
