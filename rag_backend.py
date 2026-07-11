@@ -13,12 +13,12 @@ class GeminiEmbeddings(Embeddings):
 
     def embed_documents(self, texts):
 
-    response = self.client.models.embed_content(
-        model="models/gemini-embedding-001",
-        contents=texts
-    )
+        response = self.client.models.embed_content(
+            model="models/gemini-embedding-001",
+            contents=texts
+        )
 
-       return [embedding.values for embedding in response.embeddings]
+        return [embedding.values for embedding in response.embeddings]
 
     def embed_query(self, text):
 
@@ -33,7 +33,6 @@ class GeminiEmbeddings(Embeddings):
 def create_vector_store(pdf_path, api_key):
 
     loader = PyPDFLoader(pdf_path)
-
     documents = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(
@@ -56,17 +55,16 @@ def create_vector_store(pdf_path, api_key):
 def get_answer(vector_store, question, api_key):
 
     retriever = vector_store.as_retriever(
-        search_kwargs={"k":3}
+        search_kwargs={"k": 3}
     )
 
     docs = retriever.invoke(question)
 
     if not docs:
-      return "I don't know."
+        return "I don't know."
 
     context = "\n\n".join(
-        doc.page_content
-        for doc in docs
+        doc.page_content for doc in docs
     )
 
     prompt = f"""
@@ -93,15 +91,13 @@ Question:
 
     client = genai.Client(api_key=api_key)
 
-    client = genai.Client(api_key=api_key)
+    try:
+        response = client.models.generate_content(
+            model="gemini-3-flash-preview",
+            contents=prompt
+        )
 
-try:
-    response = client.models.generate_content(
-        model="gemini-3-flash-preview",
-        contents=prompt
-    )
+        return response.text
 
-    return response.text
-
-except Exception as e:
-    return f"Error: {str(e)}"
+    except Exception as e:
+        return f"Error: {str(e)}"
