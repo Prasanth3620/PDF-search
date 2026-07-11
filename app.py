@@ -15,8 +15,7 @@ st.write("Upload a PDF and ask questions about it.")
 
 # API_KEY = st.secrets["GOOGLE_API_KEY"]
 
-st.write("Secrets loaded:", list(st.secrets.keys()))
-
+st.write(st.secrets)
 st.stop()
 
 uploaded_pdf = st.file_uploader(
