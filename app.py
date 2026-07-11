@@ -1,5 +1,8 @@
-import streamlit as st
+import os
 import tempfile
+import streamlit as st
+
+from rag_backend import create_vector_store, get_answer
 
 from rag_backend import create_vector_store, get_answer
 
@@ -13,7 +16,9 @@ st.title("📄 PDF Question Answering")
 
 st.write("Upload a PDF and ask questions about it.")
 
-API_KEY = st.secrets["GOOGLE_API_KEY"]
+# API_KEY = st.secrets["GOOGLE_API_KEY"]
+
+API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # st.write(st.secrets)
 # st.stop()
