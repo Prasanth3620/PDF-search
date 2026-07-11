@@ -1,17 +1,12 @@
+from google import genai
+
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_google_genai import (
-    GoogleGenerativeAIEmbeddings,
-    ChatGoogleGenerativeAI,
-)
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_core.prompts import PromptTemplate
 
 
 def create_vector_store(pdf_path, api_key):
-    """
-    Creates a FAISS vector database from the uploaded PDF.
-    """
 
     loader = PyPDFLoader(pdf_path)
     documents = loader.load()
@@ -23,9 +18,8 @@ def create_vector_store(pdf_path, api_key):
 
     chunks = splitter.split_documents(documents)
 
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001",
-        google_api_key=api_key
+    embeddings = HuggingFaceEmbeddings(
+        model_name="BAAI/bge-small-en-v1.5"
     )
 
     vector_store = FAISS.from_documents(
@@ -39,58 +33,40 @@ def create_vector_store(pdf_path, api_key):
 def get_answer(vector_store, question, api_key):
 
     retriever = vector_store.as_retriever(
-        search_type="similarity",
         search_kwargs={"k":3}
     )
 
     docs = retriever.invoke(question)
 
     context = "\n\n".join(
-        doc.page_content for doc in docs
+        doc.page_content
+        for doc in docs
     )
 
-    prompt = PromptTemplate(
-        template="""
+    prompt = f"""
 You are a helpful assistant.
 
-Answer ONLY using the given context.
+Answer ONLY using the provided context.
 
 If the answer is not present in the context,
-reply with:
+reply exactly:
 
-"I don't know."
+I don't know.
 
 Context:
 {context}
 
 Question:
 {question}
-""",
-        input_variables=["context","question"]
+"""
+
+    client = genai.Client(
+        api_key=api_key
     )
 
-    final_prompt = prompt.invoke(
-        {
-            "context": context,
-            "question": question
-        }
-    )
-
-    llm = ChatGoogleGenerativeAI(
+    response = client.models.generate_content(
         model="gemini-3-flash-preview",
-        temperature=0.2,
-        google_api_key=api_key
+        contents=prompt
     )
 
-    response = llm.invoke(final_prompt)
-
-    # Gemini sometimes returns a list of text parts
-    if isinstance(response.content, list):
-
-        return "".join(
-            part["text"]
-            for part in response.content
-            if part["type"] == "text"
-        )
-
-    return response.content
+    return response.text
