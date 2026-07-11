@@ -19,7 +19,7 @@ def create_vector_store(pdf_path, api_key):
     chunks = splitter.split_documents(documents)
 
     embeddings = HuggingFaceEmbeddings(
-        model_name="BAAI/bge-small-en-v1.5"
+        model_name="sentence-transformers/paraphrase-MiniLM-L3-v2"
     )
 
     vector_store = FAISS.from_documents(
