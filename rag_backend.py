@@ -1,5 +1,3 @@
-import numpy as np
-
 from google import genai
 
 from langchain_core.embeddings import Embeddings
@@ -20,7 +18,7 @@ class GeminiEmbeddings(Embeddings):
         contents=texts
     )
 
-    return [embedding.values for embedding in response.embeddings]
+       return [embedding.values for embedding in response.embeddings]
 
     def embed_query(self, text):
 
@@ -63,20 +61,28 @@ def get_answer(vector_store, question, api_key):
 
     docs = retriever.invoke(question)
 
+    if not docs:
+      return "I don't know."
+
     context = "\n\n".join(
         doc.page_content
         for doc in docs
     )
 
     prompt = f"""
-You are a helpful assistant.
+You are a helpful PDF assistant.
 
 Answer ONLY using the provided context.
 
-If the answer cannot be found in the context,
+If the answer is partially present,
+answer only what is supported by the context.
+
+If the answer cannot be found,
 reply exactly:
 
 I don't know.
+
+Do not make up facts.
 
 Context:
 {context}
@@ -87,9 +93,15 @@ Question:
 
     client = genai.Client(api_key=api_key)
 
+    client = genai.Client(api_key=api_key)
+
+try:
     response = client.models.generate_content(
         model="gemini-3-flash-preview",
         contents=prompt
     )
 
     return response.text
+
+except Exception as e:
+    return f"Error: {str(e)}"
