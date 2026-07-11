@@ -1,12 +1,11 @@
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_google_genai import ( GoogleGenerativeAIEmbeddings,ChatGoogleGenerativeAI,)
-
-
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_google_genai import (
+    GoogleGenerativeAIEmbeddings,
+    ChatGoogleGenerativeAI,
+)
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 
 def create_vector_store(pdf_path, api_key):
