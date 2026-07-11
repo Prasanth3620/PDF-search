@@ -15,18 +15,12 @@ class GeminiEmbeddings(Embeddings):
 
     def embed_documents(self, texts):
 
-        embeddings = []
+    response = self.client.models.embed_content(
+        model="models/gemini-embedding-001",
+        contents=texts
+    )
 
-        for text in texts:
-
-            response = self.client.models.embed_content(
-                model="models/gemini-embedding-001",
-                contents=text
-            )
-
-            embeddings.append(response.embeddings[0].values)
-
-        return embeddings
+    return [embedding.values for embedding in response.embeddings]
 
     def embed_query(self, text):
 
