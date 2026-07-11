@@ -30,11 +30,11 @@ uploaded_pdf = st.file_uploader(
     type=["pdf"]
 )
 
-if uploaded_pdf is not None:
+if uploaded_pdf:
 
     if (
-        "pdf_name" not in st.session_state
-        or st.session_state.pdf_name != uploaded_pdf.name
+        "vector_store" not in st.session_state
+        or st.session_state.get("pdf_name") != uploaded_pdf.name
     ):
 
         with tempfile.NamedTemporaryFile(
@@ -63,7 +63,7 @@ question = st.text_input(
 
 if st.button("Get Answer"):
 
-    if uploaded_pdf is None:
+    if "vector_store" not in st.session_state:
 
         st.warning("Please upload a PDF first.")
 
